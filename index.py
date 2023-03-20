@@ -7,10 +7,10 @@ from tensorflow.keras.applications.efficientnet import preprocess_input
 
 app = Flask(__name__)
 
-Part = {p01: 'p01',p02: 'p02',p01: 'p01'}
-
+Part = {0: 'p01',1: 'p02',2: 'p03',3:'p04',4:'p05',5:'p06',6:'p07',7:'p08',8:'p09',9:'p10',10:'p11',11:'p12',12:'p13',13:'p14',14:'p15'}
+Damage = {0: 'Base',1:'Minor',2:'Moderate',3:'Severe'}
 import sys
-sys.path.append('/supidchaya/Web-Application-/templates/Part.h5')
+sys.path.append('/home/supidchaya/Web-Application-/templates/Part.h5')
 
 from efficientnet.layers import Swish, DropConnect
 from efficientnet.model import ConvKernalInitializer
@@ -22,11 +22,11 @@ get_custom_objects().update({
     'DropConnect':DropConnect
 })
 
-model1 = tf.keras.models.load_model('/supidchaya/Web-Application-/templates/Part.h5')
-
+model1 = tf.keras.models.load_model('/home/supidchaya/Web-Application-/templates/Part.h5')
+model2 = tf.keras.models.load_model('/home/supidchaya/Web-Application-/templates/damage.h5')
 
 model1.make_predict_function()
-
+model2.make_predict_function()
 # def predict_image1(img_path):
 #     # Read the image and preprocess it
 #     img = image.load_img(img_path, target_size=(150, 150))
@@ -55,6 +55,14 @@ def predict_image1(img_path):
     result = model1.predict(x)
     return my_tuple[int(result[0])]
 
+def predict_image2(img_path):
+    # Read the image and preprocess it
+    img = image.load_img(img_path, target_size=(150, 150))
+    g = image.img_to_array(img)
+    g = g.reshape((1,) + g.shape) 
+    g /= 255.
+    result = model2.predict(g)
+    return Damage[result.argmax()]
 
 # routes
 @app.route('/')
@@ -72,9 +80,9 @@ def upload():
         # Predict the age
 
         part_pred = predict_image1(img_path)
-
+        damage_pred = predict_image2(img_path)
         # Render the prediction result
-        return render_template('upload_completed.html', prediction1=part_pred)
+        return render_template('upload_completed.html', prediction1=part_pred,prediction2=damage_pred)
 
 if __name__ == '__main__':
     app.run(debug=True)
